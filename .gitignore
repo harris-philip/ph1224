@@ -37,3 +37,4 @@ out/
 .vscode/
 
 rental-app/.env
+/rental-app/src/main/webapp/rental-tool-vue/node_modules/
