@@ -1,7 +1,6 @@
 package com.rental.rental_app.services;
 
 import com.rental.rental_app.entity.Tool;
-import com.rental.rental_app.entity.ToolProjection;
 import com.rental.rental_app.entity.ToolRentalInfo;
 import com.rental.rental_app.entity.ToolType;
 import com.rental.rental_app.repository.ToolRentalInfoRepository;
@@ -13,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
@@ -40,11 +40,6 @@ public class ToolService {
         return typeRepository.save(type);
     }
 
-    public Page<ToolProjection> findAllTools(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("toolTypeName").ascending());
-        return repository.findAllToolProjections(pageable);
-    }
-
     public Page<ToolType> findAllTypes(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("toolTypeName").ascending());
         return typeRepository.findAllWithPagination(pageable);
@@ -65,5 +60,13 @@ public class ToolService {
 
     public void deleteRentalInfo(UUID rentalInfoId) {
         rentalInfoRepository.deleteById(rentalInfoId);
+    }
+
+    public Tool findToolByCode(String code) {
+        return repository.findByToolCode(code).orElseThrow(NoSuchElementException::new);
+    }
+
+    public ToolRentalInfo findRentalInfoByToolType(ToolType toolType) {
+        return rentalInfoRepository.findByToolType(toolType).orElseThrow(NoSuchElementException::new);
     }
 }

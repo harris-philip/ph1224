@@ -61,21 +61,6 @@ CREATE TABLE user_authority (
     FOREIGN KEY (authority_id) REFERENCES authorities(authority_id) ON DELETE CASCADE
 );
 
-CREATE TABLE static_holiday (
-    holiday_id UUID PRIMARY KEY,
-    holiday_name VARCHAR(100) NOT NULL,
-    holiday_date DATE NOT NULL,  -- The month and day part of the holiday (e.g., '12-25' for Christmas)
-    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
-);
-
-CREATE TABLE variable_holiday (
-    holiday_id UUID PRIMARY KEY,
-    holiday_name VARCHAR(100) NOT NULL,
-    holiday_date DATE NOT NULL,  -- Full date for that year's holiday occurrence
-    year INT NOT NULL,  -- The year of the holiday
-    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
-);
-
 CREATE TABLE rental_agreement (
     rental_agreement_id UUID PRIMARY KEY,
     tool_id UUID NOT NULL,

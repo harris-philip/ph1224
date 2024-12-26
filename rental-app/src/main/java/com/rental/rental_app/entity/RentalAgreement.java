@@ -2,6 +2,7 @@ package com.rental.rental_app.entity;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -22,10 +23,10 @@ public class RentalAgreement {
     private int rentalDays;
 
     @Column(name = "checkout_date", nullable = false)
-    private LocalDateTime checkoutDate;
+    private LocalDate checkoutDate;
 
     @Column(name = "due_date", nullable = false)
-    private LocalDateTime dueDate;
+    private LocalDate dueDate;
 
     @Column(name = "daily_rental_charge", precision = 10, scale = 2, nullable = false)
     private BigDecimal dailyRentalCharge;
@@ -35,6 +36,9 @@ public class RentalAgreement {
 
     @Column(name = "discount_percent", precision = 5, scale = 2, nullable = false)
     private BigDecimal discountPercent;
+
+    @Column(name = "pre_discount_charge", precision = 10, scale = 2, nullable = false)
+    private BigDecimal preDiscountCharge;
 
     @Column(name = "discount_amount", precision = 10, scale = 2, nullable = false)
     private BigDecimal discountAmount;
@@ -48,7 +52,6 @@ public class RentalAgreement {
     @Column(name = "modified_date", nullable = false)
     private LocalDateTime modifiedDate;
 
-    // Getters and Setters
     public UUID getRentalAgreementId() {
         return rentalAgreementId;
     }
@@ -73,19 +76,19 @@ public class RentalAgreement {
         this.rentalDays = rentalDays;
     }
 
-    public LocalDateTime getCheckoutDate() {
+    public LocalDate getCheckoutDate() {
         return checkoutDate;
     }
 
-    public void setCheckoutDate(LocalDateTime checkoutDate) {
+    public void setCheckoutDate(LocalDate checkoutDate) {
         this.checkoutDate = checkoutDate;
     }
 
-    public LocalDateTime getDueDate() {
+    public LocalDate getDueDate() {
         return dueDate;
     }
 
-    public void setDueDate(LocalDateTime dueDate) {
+    public void setDueDate(LocalDate dueDate) {
         this.dueDate = dueDate;
     }
 
@@ -121,6 +124,14 @@ public class RentalAgreement {
         this.discountAmount = discountAmount;
     }
 
+    public BigDecimal getPreDiscountCharge() {
+        return preDiscountCharge;
+    }
+
+    public void setPreDiscountCharge(BigDecimal preDiscountCharge) {
+        this.preDiscountCharge = preDiscountCharge;
+    }
+
     public BigDecimal getFinalCharge() {
         return finalCharge;
     }
@@ -143,6 +154,24 @@ public class RentalAgreement {
 
     public void setModifiedDate(LocalDateTime modifiedDate) {
         this.modifiedDate = modifiedDate;
+    }
+
+    @Override
+    public String toString() {
+        return "-----Rental Agreement-----\n" +
+                "Tool code: " + tool.getToolCode() + "\n" +
+                "Tool type: " + tool.getToolType().getToolTypeName() + "\n" +
+                "Tool brand: " + tool.getBrand() + "\n" +
+                "Rental days: " + rentalDays + "\n" +
+                "Checkout Date: " + checkoutDate + "\n" +
+                "Due date: " + dueDate + "\n" +
+                "Daily rental charge: " + dailyRentalCharge + "\n" +
+                "Charge days: " + chargeableDays + "\n" +
+                "Pre-discount charge: " + preDiscountCharge + "\n" +
+                "Discount percent: " + discountPercent + "\n" +
+                "Discount amount: " + discountAmount + "\n" +
+                "Final charge: " + finalCharge + "\n" +
+                "--------------------------";
     }
 }
 
