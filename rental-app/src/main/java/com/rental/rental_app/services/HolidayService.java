@@ -1,51 +1,41 @@
 package com.rental.rental_app.services;
 
-import com.rental.rental_app.entity.StaticHoliday;
-import com.rental.rental_app.entity.VariableHoliday;
-import com.rental.rental_app.repository.StaticHolidayRepository;
-import com.rental.rental_app.repository.VariableHolidayRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.temporal.TemporalAdjusters;
 
 @Service
 public class HolidayService {
 
-    private final StaticHolidayRepository staticHolidayRepository;
-    private final VariableHolidayRepository variableHolidayRepository;
-
-    public HolidayService(StaticHolidayRepository staticHolidayRepository, VariableHolidayRepository variableHolidayRepository) {
-        this.staticHolidayRepository = staticHolidayRepository;
-        this.variableHolidayRepository = variableHolidayRepository;
+    public boolean isLaborDay(LocalDate date) {
+        return date.equals(getFirstMondayInSept(date.getYear()));
     }
 
-    public StaticHoliday saveStaticHoliday(StaticHoliday holiday) {
-        return staticHolidayRepository.save(holiday);
+    private LocalDate getFirstMondayInSept(int year) {
+        LocalDate firstMondayInSept = LocalDate.of(year, Month.SEPTEMBER, 1);
+        return firstMondayInSept.with(TemporalAdjusters.firstInMonth(DayOfWeek.MONDAY));
     }
 
-    public VariableHoliday saveVariableHoliday(VariableHoliday holiday) {
-        return variableHolidayRepository.save(holiday);
+    public boolean isIndependenceDay(LocalDate date) {
+        return date.equals(getIndependenceDay(date.getYear()));
     }
 
-    public Page<StaticHoliday> findAllStaticHolidays(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("holidayDate").ascending());
-        return staticHolidayRepository.findAllWithPagination(pageable);
+    private LocalDate getIndependenceDay(int year) {
+        LocalDate independenceDay = LocalDate.of(year, Month.JULY, 4);
+        if (isWeekend(independenceDay)) {
+            if (independenceDay.getDayOfWeek().equals(DayOfWeek.SUNDAY)) {
+                independenceDay = independenceDay.plusDays(1);
+            } else if (independenceDay.getDayOfWeek().equals(DayOfWeek.SATURDAY)) {
+                independenceDay = independenceDay.minusDays(1);
+            }
+        }
+        return independenceDay;
     }
 
-    public Page<VariableHoliday> findAllVariableHolidays(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("holidayDate").ascending());
-        return variableHolidayRepository.findAllWithPagination(pageable);
-    }
-
-    public void deleteStaticHoliday(UUID staticHolidayId) {
-        staticHolidayRepository.deleteById(staticHolidayId);
-    }
-
-    public void deleteVariableHoliday(UUID variableHolidayId) {
-        variableHolidayRepository.deleteById(variableHolidayId);
+    public boolean isWeekend(LocalDate date) {
+        return date.getDayOfWeek().equals(DayOfWeek.SATURDAY) || date.getDayOfWeek().equals(DayOfWeek.SUNDAY);
     }
 }
