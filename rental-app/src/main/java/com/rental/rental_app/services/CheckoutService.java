@@ -6,32 +6,30 @@ import com.rental.rental_app.entity.ToolRentalInfo;
 import com.rental.rental_app.exceptions.InvalidDiscountRateException;
 import com.rental.rental_app.exceptions.InvalidRentalDaysException;
 import com.rental.rental_app.factories.RentalAgreementFactory;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.Month;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.IntStream;
 
 @Service
 public class CheckoutService {
-    private final static Logger LOGGER = LogManager.getLogger(CheckoutService.class);
 
     private final RentalService rentalService;
     private final ToolService toolService;
-    private final HolidayService holidayService;
 
-    public CheckoutService(RentalService rentalService, ToolService toolService, HolidayService holidayService) {
+    public CheckoutService(RentalService rentalService, ToolService toolService) {
         this.rentalService = rentalService;
         this.toolService = toolService;
-        this.holidayService = holidayService;
     }
 
-    public RentalAgreement checkout(String toolCode, int rentalDayCount, int discountPercent, LocalDate checkoutDate) throws InvalidRentalDaysException, InvalidDiscountRateException {
+    public void checkout(String toolCode, int rentalDayCount, int discountPercent, LocalDate checkoutDate) throws InvalidRentalDaysException, InvalidDiscountRateException {
         if (rentalDayCount < 1) {
             throw new InvalidRentalDaysException("Rental Days entered is less than 1, please enter a number greater than or equal to 1 for rental days");
         }
@@ -49,8 +47,35 @@ public class CheckoutService {
                 BigDecimal.valueOf(discountPercent), preDiscountAmount, discountAmount,
                 calculateFinalCharge(preDiscountAmount, discountAmount));
         rentalService.save(rentalAgreement);
-        LOGGER.info(rentalAgreement.toString());
-        return rentalAgreement;
+        logRentalAgreement(rentalAgreement);
+    }
+
+    private void logRentalAgreement(RentalAgreement rentalAgreement) {
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("MM/dd/yy");
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("----- Rental Agreement -----\n");
+        addLine(stringBuilder, "Tool code: ", rentalAgreement.getTool().getToolCode());
+        addLine(stringBuilder, "Tool type: ", rentalAgreement.getTool().getToolType().getToolTypeName());
+        addLine(stringBuilder, "Tool brand: ", rentalAgreement.getTool().getBrand());
+        addLine(stringBuilder, "Rental days: ", rentalAgreement.getRentalDays());
+        addLine(stringBuilder, "Check out date: ", dateTimeFormatter.format(rentalAgreement.getCheckoutDate()));
+        addLine(stringBuilder, "Due date: ", dateTimeFormatter.format(rentalAgreement.getDueDate()));
+        addLine(stringBuilder, "Daily rental charge: ", formatCurrencyAmounts(rentalAgreement.getDailyRentalCharge()));
+        addLine(stringBuilder, "Charge days: ", rentalAgreement.getChargeableDays());
+        addLine(stringBuilder, "Pre-discount charge: ", formatCurrencyAmounts(rentalAgreement.getPreDiscountCharge()));
+        addLine(stringBuilder, "Discount Percent: ", rentalAgreement.getDiscountPercent() + "%");
+        addLine(stringBuilder, "Discount Amount: ", formatCurrencyAmounts(rentalAgreement.getDiscountAmount()));
+        addLine(stringBuilder, "Final charge: ", formatCurrencyAmounts(rentalAgreement.getFinalCharge()));
+        System.out.println(stringBuilder);
+    }
+
+    private void addLine(StringBuilder stringBuilder, String prefix, Object value) {
+        stringBuilder.append(prefix).append(value).append("\n");
+    }
+
+    private String formatCurrencyAmounts(BigDecimal value) {
+        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
+        return currencyFormat.format(value);
     }
 
     private int calculateChargeableDays(List<LocalDate> rentalPeriod, ToolRentalInfo rentalInfo) {
@@ -65,11 +90,11 @@ public class CheckoutService {
     private boolean isChargeable(LocalDate possibleChargeableDate, ToolRentalInfo rentalInfo) {
         boolean isHoliday = false;
         if (possibleChargeableDate.getMonth().equals(Month.JULY)) {
-            isHoliday = holidayService.isIndependenceDay(possibleChargeableDate);
+            isHoliday = HolidayService.isIndependenceDay(possibleChargeableDate);
         } else if (possibleChargeableDate.getMonth().equals(Month.SEPTEMBER)) {
-            isHoliday = holidayService.isLaborDay(possibleChargeableDate);
+            isHoliday = HolidayService.isLaborDay(possibleChargeableDate);
         }
-        boolean isWeekend = holidayService.isWeekend(possibleChargeableDate);
+        boolean isWeekend = HolidayService.isWeekend(possibleChargeableDate);
 
         if (isHoliday && !rentalInfo.isHasHolidayCharge()) {
             return false;
@@ -78,13 +103,9 @@ public class CheckoutService {
         } else return !isWeekend || rentalInfo.isHasWeekendCharge();
     }
 
-    private LocalDate calculateDueDate(LocalDate checkoutDate, int rentalDays) {
-        return checkoutDate.plusDays(rentalDays);
-    }
-
     private BigDecimal calculateDiscountAmount(BigDecimal preDiscountCharge, BigDecimal discountPercent) {
         return preDiscountCharge.multiply(
-                    discountPercent.divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP)
+                    discountPercent.divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP)
                 ).setScale(2, RoundingMode.HALF_UP);
     }
 

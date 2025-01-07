@@ -155,23 +155,5 @@ public class RentalAgreement {
     public void setModifiedDate(LocalDateTime modifiedDate) {
         this.modifiedDate = modifiedDate;
     }
-
-    @Override
-    public String toString() {
-        return "-----Rental Agreement-----\n" +
-                "Tool code: " + tool.getToolCode() + "\n" +
-                "Tool type: " + tool.getToolType().getToolTypeName() + "\n" +
-                "Tool brand: " + tool.getBrand() + "\n" +
-                "Rental days: " + rentalDays + "\n" +
-                "Checkout Date: " + checkoutDate + "\n" +
-                "Due date: " + dueDate + "\n" +
-                "Daily rental charge: " + dailyRentalCharge + "\n" +
-                "Charge days: " + chargeableDays + "\n" +
-                "Pre-discount charge: " + preDiscountCharge + "\n" +
-                "Discount percent: " + discountPercent + "\n" +
-                "Discount amount: " + discountAmount + "\n" +
-                "Final charge: " + finalCharge + "\n" +
-                "--------------------------";
-    }
 }
 
